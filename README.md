@@ -18,7 +18,12 @@
 - https://adventofcode.com/2024/day/2
 - solution : `mise task run day2`
 
-## Day 2: Day 3: Mull It Over
+## Day 3: Mull It Over
 
 - https://adventofcode.com/2024/day/3
 - solution : `mise task run day3`
+
+## Day 4: Ceres Search
+
+- https://adventofcode.com/2024/day/4
+- solution : `mise task run day4`
