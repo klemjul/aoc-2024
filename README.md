@@ -27,3 +27,8 @@
 
 - https://adventofcode.com/2024/day/4
 - solution : `mise task run day4`
+
+## Day 5: Print Queue
+
+- https://adventofcode.com/2024/day/5
+- solution : `mise task run day5`
