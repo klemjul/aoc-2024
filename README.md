@@ -32,3 +32,8 @@
 
 - https://adventofcode.com/2024/day/5
 - solution : `mise task run day5`
+
+## Day 6: Guard Gallivant
+
+- https://adventofcode.com/2024/day/6
+- solution : `mise task run day6`
