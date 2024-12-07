@@ -9,8 +9,8 @@ import (
 )
 
 type Coord struct {
-	x int
-	y int
+	Row  int
+	Cell int
 }
 
 type Direction int
@@ -39,80 +39,58 @@ var GuardDirectionSymbols = map[Direction]string{
 }
 
 func main() {
-	part1()
-	part2()
-}
-
-func part1() {
-	guardMap, err := parseMap("./inputs.txt")
-	guardInMap := true
-	if err != nil {
-		fmt.Println("Error parsing map:", err)
-		return
-	}
-
-	for guardInMap {
-		initGuardPos, initGuardSymbol := findGuard(guardMap)
-		nextGuardPos, nextGuardSymbol := nextGuardPosition(guardMap, initGuardPos, initGuardSymbol)
-		if nextGuardPos.x < 0 || nextGuardPos.y < 0 {
-			guardInMap = false
-			guardMap[initGuardPos.x][initGuardPos.y] = "X"
-			break
-		}
-		if initGuardSymbol == nextGuardSymbol {
-			guardMap[initGuardPos.x][initGuardPos.y] = "X"
-			guardMap[nextGuardPos.x][nextGuardPos.y] = nextGuardSymbol
-		} else {
-			guardMap[initGuardPos.x][initGuardPos.y] = nextGuardSymbol
-		}
-	}
-
-	dictinctPositionsVisitedByGuard := 0
-	for i := 0; i < len(guardMap); i++ {
-		for j := 0; j < len(guardMap[i]); j++ {
-			if guardMap[i][j] == "X" {
-				dictinctPositionsVisitedByGuard += 1
-			}
-		}
-	}
-
-	fmt.Printf("Guard visit %v disting positions\n", dictinctPositionsVisitedByGuard)
-}
-
-func part2() {
 	gameMap, err := parseMap("./inputs.txt")
 	if err != nil {
 		fmt.Println("Error parsing map:", err)
 		return
 	}
+	part1(gameMap)
+	part2(gameMap)
+}
 
+func part1(gameMap [][]string) {
+	_, visitedMapCells := runGame(gameMap)
+
+	dictinctPositionsVisitedByGuard := 0
+	for r := range visitedMapCells {
+		for c := range visitedMapCells[r] {
+			if slices.Contains(GuardSymbols, visitedMapCells[r][c]) {
+				dictinctPositionsVisitedByGuard += 1
+			}
+		}
+	}
+
+	fmt.Printf("Guard visit %v distinct positions\n", dictinctPositionsVisitedByGuard)
+}
+
+func part2(gameMap [][]string) {
 	// run without obstacle to identify ceels that can be blocked
 	initGuardPos, _ := findGuard(gameMap)
 	_, visitedMapCells := runGame(gameMap)
 	cellsThatCanBeBlocked := []Coord{}
-	for i := 0; i < len(visitedMapCells); i++ {
-		for j := 0; j < len(visitedMapCells[i]); j++ {
-			if i == initGuardPos.x && j == initGuardPos.y {
+	for r := range visitedMapCells {
+		for c := range visitedMapCells[r] {
+			if r == initGuardPos.Row && c == initGuardPos.Cell {
 				continue
 			}
-			if slices.Contains(GuardSymbols, visitedMapCells[i][j]) {
-				cellsThatCanBeBlocked = append(cellsThatCanBeBlocked, Coord{x: i, y: j})
+			if slices.Contains(GuardSymbols, visitedMapCells[r][c]) {
+				cellsThatCanBeBlocked = append(cellsThatCanBeBlocked, Coord{Row: r, Cell: c})
 			}
 		}
 	}
 
 	// run multiple game to identify cells that loop the guard
-	cellsThatLoopTheGuard := []Coord{}
+	coordsThatLoopTheGuard := []Coord{}
 	for _, cell := range cellsThatCanBeBlocked {
-		gameMap[cell.x][cell.y] = "#"
+		gameMap[cell.Row][cell.Cell] = "#"
 		guardStuckInLoop, _ := runGame(gameMap)
-		gameMap[cell.x][cell.y] = "."
+		gameMap[cell.Row][cell.Cell] = "."
 		if guardStuckInLoop {
-			cellsThatLoopTheGuard = append(cellsThatLoopTheGuard, cell)
+			coordsThatLoopTheGuard = append(coordsThatLoopTheGuard, cell)
 		}
 	}
 
-	fmt.Printf("Cells that loop the guard: %v\n", len(cellsThatLoopTheGuard))
+	fmt.Printf("Coords that loop the guard: %v\n", len(coordsThatLoopTheGuard))
 }
 
 func nextDirection(current Direction, angle int) Direction {
@@ -126,7 +104,7 @@ func findGuard(guardMap [][]string) (Coord, string) {
 	for i := 0; i < len(guardMap); i++ {
 		for j := 0; j < len(guardMap[i]); j++ {
 			if slices.Contains(GuardSymbols, guardMap[i][j]) {
-				return Coord{x: i, y: j}, guardMap[i][j]
+				return Coord{Row: i, Cell: j}, guardMap[i][j]
 			}
 		}
 	}
@@ -135,11 +113,11 @@ func findGuard(guardMap [][]string) (Coord, string) {
 
 func nextGuardPosition(guardMap [][]string, guardPos Coord, guardSymbol string) (Coord, string) {
 	guardDirection := GuardSymbolsDirections[guardSymbol]
-	nextPos := Coord{guardPos.x + DirectionCoords[guardDirection].x, guardPos.y + DirectionCoords[guardDirection].y}
-	if nextPos.x < 0 || nextPos.x >= len(guardMap) || nextPos.y < 0 || nextPos.y >= len(guardMap[0]) {
-		return Coord{x: -1, y: -1}, guardSymbol
+	nextPos := Coord{guardPos.Row + DirectionCoords[guardDirection].Row, guardPos.Cell + DirectionCoords[guardDirection].Cell}
+	if nextPos.Row < 0 || nextPos.Row >= len(guardMap) || nextPos.Cell < 0 || nextPos.Cell >= len(guardMap[0]) {
+		return Coord{Row: -1, Cell: -1}, guardSymbol
 	}
-	if guardMap[nextPos.x][nextPos.y] == "#" {
+	if guardMap[nextPos.Row][nextPos.Cell] == "#" {
 		guardDirection = nextDirection(guardDirection, 90)
 		return guardPos, GuardDirectionSymbols[guardDirection]
 	}
@@ -154,17 +132,17 @@ func runGame(gameMap [][]string) (bool, [][]string) {
 
 	for guardInMap {
 		nextGuardPos, nextGuardSymbol := nextGuardPosition(gameMap, guardPos, guardSymbol)
-		if nextGuardPos.x < 0 || nextGuardPos.y < 0 {
+		if nextGuardPos.Row < 0 || nextGuardPos.Cell < 0 {
 			guardInMap = false
 			break
 		}
-		if visitedMapCells[nextGuardPos.x][nextGuardPos.y] == nextGuardSymbol {
+		if visitedMapCells[nextGuardPos.Row][nextGuardPos.Cell] == nextGuardSymbol {
 			guardStuckInLoop = true
 			break
 		}
 		if guardSymbol == nextGuardSymbol {
 			guardPos = nextGuardPos
-			visitedMapCells[nextGuardPos.x][nextGuardPos.y] = nextGuardSymbol
+			visitedMapCells[nextGuardPos.Row][nextGuardPos.Cell] = nextGuardSymbol
 		} else {
 			guardSymbol = nextGuardSymbol
 		}
