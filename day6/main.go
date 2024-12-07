@@ -162,7 +162,7 @@ func copyMap(guardMap [][]string) [][]string {
 func parseMap(filename string) ([][]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	defer file.Close()
 

@@ -37,3 +37,8 @@
 
 - https://adventofcode.com/2024/day/6
 - solution : `mise task run day6`
+
+## Day 7: Bridge Repair
+
+- https://adventofcode.com/2024/day/7
+- solution : `mise task run day7`
