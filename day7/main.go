@@ -45,6 +45,11 @@ func part2(equations []Equation) {
 
 }
 
+func concat(a int, b int) int {
+	res, _ := parseNumber(strconv.Itoa(a) + strconv.Itoa(b))
+	return res
+}
+
 func addition(a int, b int) int {
 	return a + b
 }
@@ -55,18 +60,29 @@ func multiplication(a int, b int) int {
 
 func generatePossibilities(operandSize int) [][]func(int, int) int {
 	possibilities := [][]func(int, int) int{}
-	for i := 0; i < (1 << uint(operandSize-1)); i++ {
-		possibility := []func(int, int) int{}
-		for j := 0; j < operandSize-1; j++ {
-			if i&(1<<uint(j)) != 0 {
-				possibility = append(possibility, multiplication)
-			} else {
-				possibility = append(possibility, addition)
-			}
-		}
-		possibilities = append(possibilities, possibility)
-	}
+
+	generatePossibilitiesRecursive(operandSize-1, []func(int, int) int{}, &possibilities)
+
 	return possibilities
+}
+
+func generatePossibilitiesRecursive(remainingOperations int, currentPossibility []func(int, int) int, possibilities *[][]func(int, int) int) {
+	if remainingOperations == 0 {
+		*possibilities = append(*possibilities, currentPossibility)
+		return
+	}
+
+	newPossibility := append([]func(int, int) int{}, currentPossibility...)
+	newPossibility = append(newPossibility, addition)
+	generatePossibilitiesRecursive(remainingOperations-1, newPossibility, possibilities)
+
+	newPossibility = append([]func(int, int) int{}, currentPossibility...)
+	newPossibility = append(newPossibility, multiplication)
+	generatePossibilitiesRecursive(remainingOperations-1, newPossibility, possibilities)
+
+	newPossibility = append([]func(int, int) int{}, currentPossibility...)
+	newPossibility = append(newPossibility, concat)
+	generatePossibilitiesRecursive(remainingOperations-1, newPossibility, possibilities)
 }
 
 func testEquation(eq Equation) (bool, error) {
