@@ -21,3 +21,6 @@ run = 'cd day6 && time go run main.go'
 
 [tasks.day7]
 run = 'cd day7 && time go run main.go'
+
+[tasks.day8]
+run = 'cd day8 && time go run main.go'

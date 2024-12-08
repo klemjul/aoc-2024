@@ -42,3 +42,8 @@
 
 - https://adventofcode.com/2024/day/7
 - solution : `mise task run day7`
+
+## Day 8: Resonant Collinearity
+
+- https://adventofcode.com/2024/day/8
+- solution : `mise task run day8`
