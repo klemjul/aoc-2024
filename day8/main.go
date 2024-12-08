@@ -19,42 +19,43 @@ func main() {
 		fmt.Println("Error parsing map:", err)
 		return
 	}
-	part1(gameMap)
-	part2(gameMap)
+	part1(copyMap((gameMap)))
+	part2(copyMap((gameMap)))
 }
 
 func part1(gameMap [][]string) {
+	antinodePositionsWithoutDuplicates := countUniqueAntinodePositions(gameMap, false)
+	fmt.Printf("Part1: Number of antinode positions: %d\n", antinodePositionsWithoutDuplicates)
+}
+
+func part2(gameMap [][]string) {
+	antinodePositionsWithoutDuplicates := countUniqueAntinodePositions(gameMap, true)
+	fmt.Printf("Part2: Number of antinode positions: %d\n", antinodePositionsWithoutDuplicates)
+}
+
+func countUniqueAntinodePositions(gameMap [][]string, inLineAntinodes bool) int {
 	antennas := findAntennas(gameMap)
 	mapLimits := calcMapLimits(gameMap)
 	allAntinodePositions := []Position{}
-	for _, antennaPositions := range antennas {
-		antinodePositions := calcAntennaAntinodes(mapLimits, antennaPositions)
-		allAntinodePositions = append(allAntinodePositions, antinodePositions...)
-	}
-	antinodePositionsWithoutDuplicates := slices.DeleteFunc(
-		allAntinodePositions,
-		func(pos Position) bool {
-			found := false
-			for _, otherAntinodePosition := range allAntinodePositions {
-				if otherAntinodePosition == pos {
-					if found {
-						return true
-					}
-					found = true
-					continue
-				}
-			}
-			return false
-		},
-	)
-	drawMap(gameMap, antinodePositionsWithoutDuplicates)
-	fmt.Printf("Number of antinode positions: %d\n", len(antinodePositionsWithoutDuplicates))
 
+	for _, antennaPositions := range antennas {
+		antinodePositions := calcAntennaAntinodes(mapLimits, antennaPositions, inLineAntinodes)
+		allAntinodePositions = append(allAntinodePositions, antinodePositions...)
+		if inLineAntinodes {
+			allAntinodePositions = append(allAntinodePositions, antennaPositions...)
+		}
+	}
+
+	antinodePositionsWithoutDuplicates := []Position{}
+	for _, antinodePosition := range allAntinodePositions {
+		if !slices.Contains(antinodePositionsWithoutDuplicates, antinodePosition) {
+			antinodePositionsWithoutDuplicates = append(antinodePositionsWithoutDuplicates, antinodePosition)
+		}
+	}
+	return len(antinodePositionsWithoutDuplicates)
 }
 
-func part2(gameMap [][]string) {}
-
-func calcAntennaAntinodes(mapLimits Position, antennaPositions []Position) []Position {
+func calcAntennaAntinodes(mapLimits Position, antennaPositions []Position, inLineAntinodes bool) []Position {
 	antinodePositions := []Position{}
 	for _, firstAntennaPosition := range antennaPositions {
 		for _, secondAntennaPosition := range antennaPositions {
@@ -69,6 +70,21 @@ func calcAntennaAntinodes(mapLimits Position, antennaPositions []Position) []Pos
 				continue
 			}
 			antinodePositions = append(antinodePositions, antinodePos)
+
+			antinodePosInMap := true
+			if inLineAntinodes {
+				for antinodePosInMap {
+					antinodePos = Position{
+						Row: antinodePos.Row + firstAntennaPosition.Row - secondAntennaPosition.Row,
+						Col: antinodePos.Col + firstAntennaPosition.Col - secondAntennaPosition.Col,
+					}
+					if antinodePos.Row < 0 || antinodePos.Row >= mapLimits.Row || antinodePos.Col < 0 || antinodePos.Col >= mapLimits.Col {
+						antinodePosInMap = false
+					} else {
+						antinodePositions = append(antinodePositions, antinodePos)
+					}
+				}
+			}
 		}
 	}
 	return antinodePositions
@@ -93,13 +109,13 @@ func findAntennas(gameMap [][]string) map[string][]Position {
 	return foundAntennas
 }
 
-func drawMap(gameMap [][]string, antinodePositions []Position) {
-	for _, node := range antinodePositions {
-		gameMap[node.Row][node.Col] = "#"
+func copyMap(guardMap [][]string) [][]string {
+	newMap := make([][]string, len(guardMap))
+	for i := range guardMap {
+		newMap[i] = make([]string, len(guardMap[i]))
+		copy(newMap[i], guardMap[i])
 	}
-	for _, row := range gameMap {
-		fmt.Println(strings.Join(row, ""))
-	}
+	return newMap
 }
 
 func parseMap(filename string) ([][]string, error) {
