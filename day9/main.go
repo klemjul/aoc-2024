@@ -52,10 +52,38 @@ func part1(disk Disk) {
 	}
 
 	filesystemChecksum := calcFilesystemChecksum(fileSystemCompacted)
-	fmt.Println("File system checksum:", filesystemChecksum)
+	fmt.Println("Part 1:File system checksum:", filesystemChecksum)
 }
 
-func part2(disk Disk) {}
+func part2(disk Disk) {
+	fileSystemCompacted := make([]string, len(disk.Filesystem))
+	copy(fileSystemCompacted, disk.Filesystem)
+	// remaining free spaces
+	freeSpaces := make([]int, len(disk.SpacePositions))
+	copy(freeSpaces, disk.SpacePositions)
+
+	for fileId := len(disk.FileIds) - 1; fileId >= 0; fileId-- {
+		filePositions := disk.FilePositions[strconv.Itoa(disk.FileIds[fileId])]
+		nextFreeSpaces := foundFreeSpaces(freeSpaces, filePositions)
+		if nextFreeSpaces == nil {
+			continue
+		}
+
+		// iterate over file positions to compact file system with free spaces
+		if nextFreeSpaces[0] < filePositions[0] && len(filePositions) <= len(nextFreeSpaces) {
+			for filePosI, filePosition := range filePositions {
+				fileSystemCompacted[nextFreeSpaces[filePosI]] = strconv.Itoa(disk.FileIds[fileId])
+				fileSystemCompacted[filePosition] = "."
+				freeSpaces = removeIntFromList(freeSpaces, nextFreeSpaces[filePosI])
+				freeSpaces = append(freeSpaces, filePosition)
+				sort.Ints(freeSpaces)
+			}
+		}
+	}
+
+	filesystemChecksum := calcFilesystemChecksum(fileSystemCompacted)
+	fmt.Println("Part 2: File system checksum:", filesystemChecksum)
+}
 
 func calcFilesystemChecksum(filesystem []string) int {
 	sum := 0
@@ -64,6 +92,36 @@ func calcFilesystemChecksum(filesystem []string) int {
 		sum += i * fileIdInt
 	}
 	return sum
+}
+
+// iterate over consecutive free spaces to found free spaces for file
+func foundFreeSpaces(freeSpaces []int, filePositions []int) []int {
+	nextFreeSpaces := []int{}
+	tempFreeSpaces := make([]int, len(freeSpaces))
+	copy(tempFreeSpaces, freeSpaces)
+
+	// iterate over consecutive free spaces to found free spaces for file
+	for len(nextFreeSpaces) < len(filePositions) {
+		nextFreeSpaces = []int{}
+		nextFreeSpaceIndex := 0
+
+		for len(nextFreeSpaces) == 0 || nextFreeSpaces[nextFreeSpaceIndex-1] == tempFreeSpaces[nextFreeSpaceIndex]-1 {
+			nextFreeSpaces = append(nextFreeSpaces, tempFreeSpaces[nextFreeSpaceIndex])
+			nextFreeSpaceIndex++
+			if nextFreeSpaceIndex >= len(tempFreeSpaces) {
+				break
+			}
+		}
+		tempFreeSpaces = tempFreeSpaces[nextFreeSpaceIndex:]
+		nextFreeSpaceIndex = 0
+		if len(tempFreeSpaces) == 0 {
+			break
+		}
+	}
+	if len(nextFreeSpaces) < len(filePositions) {
+		return nil
+	}
+	return nextFreeSpaces
 }
 
 func parseDiskMap(filename string) (*Disk, error) {
@@ -117,4 +175,13 @@ func parseNumber(s string) (int, error) {
 		return 0, fmt.Errorf("could not parse %q as number: %w", s, err)
 	}
 	return i, nil
+}
+
+func removeIntFromList(list []int, value int) []int {
+	for i, v := range list {
+		if v == value {
+			return append(list[:i], list[i+1:]...)
+		}
+	}
+	return list
 }
