@@ -35,7 +35,6 @@ var DirectionCoords = map[Direction]Position{
 }
 
 func main() {
-	fmt.Println("day10")
 	gameMap, err := parseMap("./inputs.txt")
 	if err != nil {
 		fmt.Println("Error parsing map:", err)
@@ -48,14 +47,21 @@ func main() {
 func part1(topograficMap TopograficMap) {
 	mapScore := 0
 	for _, trailHeadPosition := range topograficMap.trailHeadPositions {
-		mapScore += calcTrailheadScore(trailHeadPosition, topograficMap.gameMap)
+		mapScore += calcTrailheadScore(trailHeadPosition, topograficMap.gameMap, true)
 	}
 
-	fmt.Printf("Map score: %d\n", mapScore)
+	fmt.Printf("Part 1: Map score: %d\n", mapScore)
 }
-func part2(topograficMap TopograficMap) {}
+func part2(topograficMap TopograficMap) {
+	mapScore := 0
+	for _, trailHeadPosition := range topograficMap.trailHeadPositions {
+		mapScore += calcTrailheadScore(trailHeadPosition, topograficMap.gameMap, false)
+	}
 
-func calcTrailheadScore(start Position, gameMap [][]int) int {
+	fmt.Printf("Part 2: Map score: %d\n", mapScore)
+}
+
+func calcTrailheadScore(start Position, gameMap [][]int, unique bool) int {
 	queue := []Position{start}
 	currentPos := Position{}
 	finalPositions := []Position{}
@@ -73,7 +79,7 @@ func calcTrailheadScore(start Position, gameMap [][]int) int {
 			}
 
 			if gameMap[nextPos.Row][nextPos.Col] == 9 {
-				if slices.Contains(finalPositions, nextPos) {
+				if slices.Contains(finalPositions, nextPos) && unique {
 					continue
 				}
 				finalPositions = append(finalPositions, nextPos)
