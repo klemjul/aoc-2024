@@ -57,3 +57,8 @@
 
 - https://adventofcode.com/2024/day/10
 - solution : `mise task run day10`
+
+## Day 11: Plutonian Pebbles
+
+- https://adventofcode.com/2024/day/11
+- solution : `mise task run day11`
