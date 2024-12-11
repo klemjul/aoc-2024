@@ -1,5 +1,5 @@
 [tools]
-go = ['1.21']
+go = ['1.23']
 
 [tasks.day1]
 run = 'cd day1 && time go run main.go'
@@ -24,3 +24,6 @@ run = 'cd day7 && time go run main.go'
 
 [tasks.day8]
 run = 'cd day8 && time go run main.go'
+
+[tasks.day9]
+run = 'cd day9 && time go run main.go'

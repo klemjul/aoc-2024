@@ -47,3 +47,8 @@
 
 - https://adventofcode.com/2024/day/8
 - solution : `mise task run day8`
+
+## Day 9: Disk Fragmenter
+
+- https://adventofcode.com/2024/day/9
+- solution : `mise task run day9`
