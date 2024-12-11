@@ -52,3 +52,8 @@
 
 - https://adventofcode.com/2024/day/9
 - solution : `mise task run day9`
+
+## Day 10: Hoof It
+
+- https://adventofcode.com/2024/day/10
+- solution : `mise task run day10`
