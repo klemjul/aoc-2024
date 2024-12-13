@@ -20,38 +20,57 @@ func main() {
 
 func part1(initialStones []int) {
 	blinkCount := 25
-	stonesStates := [][]int{initialStones}
-	for blinkNo := 0; blinkNo < blinkCount; blinkNo++ {
-		currentStones := stonesStates[len(stonesStates)-1]
-		stonesStates = append(stonesStates, calcNextStoneState(currentStones))
+	count := 0
+	cache := make(map[string]int)
+	for stone := range initialStones {
+		count += countStonesForBlinks(initialStones[stone], blinkCount, cache)
 	}
-	fmt.Println("Number of stones after 25 blinks:", len(stonesStates[len(stonesStates)-1]))
+	fmt.Println("Part1: Number of stones after 25 blinks:", count)
 }
 
-func part2(initialStones []int) {}
-
-func calcNextStoneState(stones []int) []int {
-	nextStoneState := []int{}
-	for _, stone := range stones {
-		if stone == 0 {
-			nextStoneState = append(nextStoneState, 1)
-			continue
-		}
-
-		stoneString := strconv.Itoa(stone)
-		if len(stoneString)%2 == 0 {
-			middleIndex := len(stoneString) / 2
-			leftNumber, _ := parseNumber(stoneString[:middleIndex])
-			rightNumber, _ := parseNumber(stoneString[middleIndex:])
-
-			nextStoneState = append(nextStoneState, leftNumber)
-			nextStoneState = append(nextStoneState, rightNumber)
-			continue
-		}
-
-		nextStoneState = append(nextStoneState, stone*2024)
+func part2(initialStones []int) {
+	blinkCount := 75
+	count := 0
+	cache := make(map[string]int)
+	for stone := range initialStones {
+		count += countStonesForBlinks(initialStones[stone], blinkCount, cache)
 	}
-	return nextStoneState
+	fmt.Println("Part2: Number of stones after 75 blinks:", count)
+}
+
+func blinkStone(stone int) []int {
+	if stone == 0 {
+		return []int{1}
+	}
+
+	stoneString := strconv.Itoa(stone)
+	if len(stoneString)%2 == 0 {
+		middleIndex := len(stoneString) / 2
+		leftNumber, _ := parseNumber(stoneString[:middleIndex])
+		rightNumber, _ := parseNumber(stoneString[middleIndex:])
+
+		return []int{leftNumber, rightNumber}
+	}
+
+	return []int{stone * 2024}
+}
+
+func countStonesForBlinks(stone int, blinkCount int, cache map[string]int) int {
+	cacheKey := fmt.Sprintf("%d_%d", blinkCount, stone)
+	if val, ok := cache[cacheKey]; ok {
+		return val
+	}
+	if blinkCount == 0 {
+		return 1
+	}
+	stoneCount := 0
+	newStones := blinkStone(stone)
+	for _, newStone := range newStones {
+		stoneCount += countStonesForBlinks(newStone, blinkCount-1, cache)
+	}
+
+	cache[cacheKey] = stoneCount
+	return stoneCount
 }
 
 func parseStones(filename string) ([]int, error) {
